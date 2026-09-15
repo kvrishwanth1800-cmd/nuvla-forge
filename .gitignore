@@ -4,10 +4,10 @@ __pycache__/
 .venv/
 venv/
 /data/
-reports/
 *.nsys-rep
 *.sqlite
 *.pt
 *.ckpt
 .pytest_cache/
 .ruff_cache/
+reports/trace-*/

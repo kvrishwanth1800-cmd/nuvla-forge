@@ -1,0 +1,43 @@
+=== captured 2026-09-15T04:40:49Z ===
+
+--- GPUs ---
+index, name, memory.total [MiB], driver_version, pcie.link.gen.max, pcie.link.width.max
+0, NVIDIA H100 NVL, 95830 MiB, 580.159.03, 5, 16
+
+--- topology (look for NV# = NVLink, PHB/SYS = through the host) ---
+	[4mGPU0	CPU Affinity	NUMA Affinity	GPU NUMA ID[0m
+GPU0	 X 	0-39	0		N/A
+
+Legend:
+
+  X    = Self
+  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)
+  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node
+  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)
+  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)
+  PIX  = Connection traversing at most a single PCIe bridge
+  NV#  = Connection traversing a bonded set of # NVLinks
+
+--- peer-to-peer access matrix ---
+visible GPUs: 1
+  gpu0: -
+
+If every off-diagonal entry is False, NCCL stages through host memory.
+That is expected on consumer Ada cards and is the premise of bench_comms.py.
+
+--- CPU / memory / disk ---
+CPU(s):                                  40
+Model name:                              AMD EPYC 9V84 96-Core Processor
+Thread(s) per core:                      1
+Core(s) per socket:                      40
+Socket(s):                               1
+               total        used        free      shared  buff/cache   available
+Mem:             314           6         277           0          33         308
+overlay          16G  1.4G   15G   9% /
+
+--- software ---
+python  3.12.14
+torch   2.11.0+cu128
+cuda    12.8
+nccl    2.28.9
+triton  3.6.0

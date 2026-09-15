@@ -1,0 +1,110 @@
+{
+  "device": "NVIDIA H100 NVL",
+  "peak_bw_gb_s": 3938.0,
+  "dtype": "bfloat16",
+  "adaln": [
+    {
+      "shape": "B8xT32xN384",
+      "dtype": "bfloat16",
+      "eager_ms": 0.6374950408935547,
+      "fused_ms": 0.4190291213989258,
+      "speedup": 1.5213621400948982,
+      "achieved_gb_s": 5.161187825752733,
+      "roofline": "5 GB/s = 0% of 3938 GB/s peak -- poor; likely uncoalesced or occupancy-starved"
+    },
+    {
+      "shape": "B8xT128xN384",
+      "dtype": "bfloat16",
+      "eager_ms": 0.6480057525634766,
+      "fused_ms": 0.4374591827392578,
+      "speedup": 1.4812942055664025,
+      "achieved_gb_s": 19.77499236804494,
+      "roofline": "20 GB/s = 1% of 3938 GB/s peak -- poor; likely uncoalesced or occupancy-starved"
+    },
+    {
+      "shape": "B16xT256xN768",
+      "dtype": "bfloat16",
+      "eager_ms": 0.6537049865722656,
+      "fused_ms": 0.43963008880615234,
+      "speedup": 1.486943235271838,
+      "achieved_gb_s": 157.4187430799698,
+      "roofline": "157 GB/s = 4% of 3938 GB/s peak -- poor; likely uncoalesced or occupancy-starved"
+    },
+    {
+      "shape": "B8xT512xN1024",
+      "dtype": "bfloat16",
+      "eager_ms": 0.6552524566650391,
+      "fused_ms": 0.44049022674560545,
+      "speedup": 1.4875527693454693,
+      "achieved_gb_s": 209.48180549143268,
+      "roofline": "209 GB/s = 5% of 3938 GB/s peak -- poor; likely uncoalesced or occupancy-starved"
+    },
+    {
+      "shape": "B4xT1024xN1536",
+      "dtype": "bfloat16",
+      "eager_ms": 0.7957894134521485,
+      "fused_ms": 0.3608358383178711,
+      "speedup": 2.205405696845206,
+      "achieved_gb_s": 383.5872640734447,
+      "roofline": "384 GB/s = 10% of 3938 GB/s peak -- poor; likely uncoalesced or occupancy-starved"
+    }
+  ],
+  "swiglu": [
+    {
+      "shape": "8192x1536",
+      "dtype": "bfloat16",
+      "eager_ms": 0.41443519592285155,
+      "fused_ms": 0.12540096282958985,
+      "speedup": 3.304880493509741,
+      "achieved_gb_s": 1605.462888459534,
+      "roofline": "1605 GB/s = 41% of 3938 GB/s peak -- underutilised; check occupancy and coalescing"
+    },
+    {
+      "shape": "16384x1536",
+      "dtype": "bfloat16",
+      "eager_ms": 0.7892326354980469,
+      "fused_ms": 0.13451264381408692,
+      "speedup": 5.867349069347442,
+      "achieved_gb_s": 2993.422570420342,
+      "roofline": "2993 GB/s = 76% of 3938 GB/s peak -- healthy; remaining gap is launch overhead and tails"
+    },
+    {
+      "shape": "32768x3072",
+      "dtype": "bfloat16",
+      "eager_ms": 3.040943298339844,
+      "fused_ms": 0.451253776550293,
+      "speedup": 6.7388761188593085,
+      "achieved_gb_s": 3569.1950288209823,
+      "roofline": "3569 GB/s = 91% of 3938 GB/s peak -- bandwidth-saturated; no headroom left in this kernel"
+    }
+  ],
+  "cross_entropy": [
+    {
+      "shape": "M4096xH384xV32000",
+      "dtype": "bfloat16",
+      "naive_ms": 8.328012847900391,
+      "naive_peak_mib": 1670.3447265625,
+      "chunked_ms": 8.720301055908203,
+      "chunked_peak_mib": 468.72314453125,
+      "memory_reduction": 3.563606248274641
+    },
+    {
+      "shape": "M8192xH384xV32000",
+      "dtype": "bfloat16",
+      "naive_ms": 17.571571350097656,
+      "naive_peak_mib": 3182.3759765625,
+      "chunked_ms": 18.80906524658203,
+      "chunked_peak_mib": 480.75439453125,
+      "memory_reduction": 6.619546306311796
+    },
+    {
+      "shape": "M16384xH384xV32000",
+      "dtype": "bfloat16",
+      "naive_ms": 38.43153381347656,
+      "naive_peak_mib": 6206.4384765625,
+      "chunked_ms": 35.862762451171875,
+      "chunked_peak_mib": 504.81689453125,
+      "memory_reduction": 12.294434960076993
+    }
+  ]
+}
