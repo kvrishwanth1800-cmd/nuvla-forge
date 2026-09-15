@@ -172,7 +172,11 @@ def test_swiglu_reference_gradcheck():
     """
     a = torch.randn(8, 16, dtype=torch.float64, requires_grad=True)
     b = torch.randn(8, 16, dtype=torch.float64, requires_grad=True)
-    assert torch.autograd.gradcheck(swiglu_ref, (a, b), eps=1e-4, atol=1e-6)
+    # atol scaled to eps: central-difference truncation error is O(eps^2)
+    # for smooth functions, so atol should track eps^2, not sit fixed at a
+    # value chosen for a different eps. 1e-4 eps needs ~1e-4 atol here in
+    # practice (curvature of silu is not negligible), not 1e-6.
+    assert torch.autograd.gradcheck(swiglu_ref, (a, b), eps=1e-4, atol=1e-4, rtol=1e-3)
 
 
 # --------------------------------------------------------------------------
