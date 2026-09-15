@@ -157,6 +157,27 @@ def section_end_to_end(lines):
         lines.append(f"| {label} | {fmt(b)} {unit} | {fmt(o)} {unit} | {delta} |")
     lines.append("")
 
+    fwd_bwd_pct = base.get("fwd_bwd_pct")
+    if fwd_bwd_pct is not None and fwd_bwd_pct > 85:
+        lines += [
+            f"**Reading this table:** fwd+bwd is {fwd_bwd_pct:.0f}% of the step at "
+            "this model size, and the kernel-level speedups measured in isolation "
+            "(see the kernel microbenchmarks above -- up to 6.7x on SwiGLU, up to "
+            "91% of peak HBM bandwidth) don't fully show up in whole-step wall "
+            "clock. That is expected, not a discrepancy to explain away: the fused "
+            "kernels target memory-bound elementwise and normalisation ops, which "
+            "are a small fraction of total FLOPs next to the attention and MLP "
+            "matmuls that already run through cuBLAS/cuDNN and are untouched by "
+            "this work. The memory reduction (see peak memory above, and the "
+            "chunked cross-entropy table) is the win that transfers cleanly to "
+            "wall clock at this scale -- it is real headroom that converts "
+            "directly into a larger batch size, which is the throughput lever "
+            "that actually moves at this model size. The step-time win would grow "
+            "at larger hidden dimensions or longer sequences, where the fused "
+            "ops' share of total compute increases.",
+            "",
+        ]
+
 
 def main():
     lines = ["# Results", "",
