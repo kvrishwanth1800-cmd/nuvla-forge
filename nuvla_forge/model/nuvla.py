@@ -91,7 +91,7 @@ class MultiViewEncoder(nn.Module):
         for blk in self.blocks:
             x = blk(x)
         x = self.norm(x)
-        return x.view(b, v * x.shape[1], -1)
+        return x.reshape(b, v * x.shape[1], -1)
 
 
 class NuVLA(nn.Module):

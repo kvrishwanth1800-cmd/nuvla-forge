@@ -79,15 +79,15 @@ class Attention(nn.Module):
     def forward(self, x, context=None):
         b, t, c = x.shape
         if context is None:
-            qkv = self.qkv(x).view(b, t, 3, self.n_heads, self.head_dim)
+            qkv = self.qkv(x).reshape(b, t, 3, self.n_heads, self.head_dim)
             q, k, v = qkv.permute(2, 0, 3, 1, 4).unbind(0)
         else:
             # Cross-attention into the scene tokens: q from the trajectory,
             # k/v from the encoder. Reuses the same fused qkv weight by slicing.
-            q = F.linear(x, self.qkv.weight[:c]).view(b, t, self.n_heads, self.head_dim).transpose(1, 2)
+            q = F.linear(x, self.qkv.weight[:c]).reshape(b, t, self.n_heads, self.head_dim).transpose(1, 2)
             kv = F.linear(context, self.qkv.weight[c:])
             s = context.shape[1]
-            k, v = kv.view(b, s, 2, self.n_heads, self.head_dim).permute(2, 0, 3, 1, 4).unbind(0)
+            k, v = kv.reshape(b, s, 2, self.n_heads, self.head_dim).permute(2, 0, 3, 1, 4).unbind(0)
 
         o = F.scaled_dot_product_attention(q, k, v)
         return self.proj(o.transpose(1, 2).reshape(b, t, c))
@@ -155,8 +155,8 @@ class DiTBlock(nn.Module):
                 self.norm_cross.weight, zeros, zeros,
                 tokens_per_sample=t,
             )
-            x = x.view(b, t, -1)
-            cross_out = self.cross(h.view(b, t, -1), context)
+            x = x.reshape(b, t, -1)
+            cross_out = self.cross(h.reshape(b, t, -1), context)
             # Seam 2: gated residual for cross-attention, then norm+modulate for MLP.
             ones = self._ones.to(x.dtype).expand(b, self.dim)
             x, h = fused_adaln_residual_rmsnorm(
@@ -164,8 +164,8 @@ class DiTBlock(nn.Module):
                 self.norm2.weight, scale2, shift2,
                 tokens_per_sample=t,
             )
-            x = x.view(b, t, -1)
-            mlp_out = self.mlp(h.view(b, t, -1))
+            x = x.reshape(b, t, -1)
+            mlp_out = self.mlp(h.reshape(b, t, -1))
             x = x + gate2.unsqueeze(1) * mlp_out
         else:
             x = x + gate1.unsqueeze(1) * self.attn(modulate(self.norm1(x), shift1, scale1))
