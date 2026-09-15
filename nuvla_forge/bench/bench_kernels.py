@@ -32,6 +32,16 @@ PEAK_BW_GB_S = {
     "NVIDIA A100-SXM4-80GB": 2039.0,
     "NVIDIA A100-SXM4-40GB": 1555.0,
     "NVIDIA H100 80GB HBM3": 3350.0,
+    "NVIDIA H100 SXM5": 3350.0,
+    # H100 NVL: 2-die HBM3 SKU, 3.9 TB/s per NVIDIA's datasheet. This exact
+    # string is what torch.cuda.get_device_name() returns for it -- it was
+    # missing from this table on the first run, which silently fell back to
+    # the generic 1000.0 GB/s default and made the SwiGLU kernel read as
+    # 178-268% of "peak", a number that cannot be real. The lesson: a
+    # missing dict entry here doesn't error, it lies plausibly. Verify
+    # `report["device"]` against this table any time a percentage exceeds
+    # ~95%.
+    "NVIDIA H100 NVL": 3938.0,
 }
 
 
@@ -99,7 +109,15 @@ def bench_swiglu(m, n, dtype, device, peak_bw):
     ref_ms = timeit(run(swiglu_ref))
     fused_ms = timeit(run(fused_swiglu))
     elem = torch.finfo(dtype).bits // 8
-    moved = 6 * m * n * elem       # fwd: r a,b w out | bwd: r dout,a,b w da,db
+    # forward:  read a, b            write out         -> 3 tensor-equivalents
+    # backward: read dout, a, b      write da, db      -> 5 tensor-equivalents
+    # timeit() runs fwd+bwd together each iteration, so both legs count.
+    # (Earlier version said "6" and only counted forward once plus a
+    # miscounted backward -- that undercount is why the first run of this
+    # benchmark reported >100% of peak bandwidth, which is physically
+    # impossible and was the signal something here was wrong, not the
+    # kernel being unrealistically fast.)
+    moved = 8 * m * n * elem
     bw = bandwidth_gb_s(moved, fused_ms)
 
     return {
