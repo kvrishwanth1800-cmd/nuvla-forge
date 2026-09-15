@@ -153,7 +153,25 @@ def section_end_to_end(lines):
         b, o = base.get(key), opt.get(key)
         if b is None or o is None:
             continue
-        delta = (f"**{b/o:.2f}x faster**" if lower_better else f"**{o/b:.2f}x more**")
+        # Bug found in a live run: for "lower is better" metrics this always
+        # printed "Nx faster" even when the optimised value was *higher* than
+        # baseline (optimiser phase went 1.14ms -> 2.74ms and still printed
+        # "0.42x faster", which reads backwards). Direction now follows the
+        # actual comparison rather than assuming the flag's intent held.
+        if lower_better:
+            if o < b:
+                delta = f"**{b/o:.2f}x faster**"
+            elif o > b:
+                delta = f"**{o/b:.2f}x slower**"
+            else:
+                delta = "no change"
+        else:
+            if o > b:
+                delta = f"**{o/b:.2f}x more**"
+            elif o < b:
+                delta = f"**{b/o:.2f}x less**"
+            else:
+                delta = "no change"
         lines.append(f"| {label} | {fmt(b)} {unit} | {fmt(o)} {unit} | {delta} |")
     lines.append("")
 
