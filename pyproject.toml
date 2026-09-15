@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nuvla-forge"
+version = "0.1.0"
+description = "Fused Triton kernels and a profiled distributed training pipeline for VLA-style autonomous driving planners"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["torch>=2.4", "numpy>=1.24", "pillow>=10.0"]
+
+[project.optional-dependencies]
+gpu = ["triton>=3.0"]
+data = ["datasets>=2.18", "webdataset>=0.2", "huggingface_hub>=0.23"]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[tool.setuptools.packages.find]
+include = ["nuvla_forge*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
