@@ -24,6 +24,19 @@ from ..data.loader import (CudaPrefetcher, LoaderConfig, build_fast_loader,
 
 
 def measure_loader(loader, n_batches, device, prefetch=False):
+    """Raw loader throughput -- no model, no compute in between batches.
+
+    CudaPrefetcher's entire purpose is overlapping the H2D copy with GPU
+    *compute*; measured here, with no compute to hide behind, it can only
+    ever add overhead (a CUDA stream, record_stream, cross-stream sync) for
+    zero benefit -- so it will legitimately look *worse* than the same
+    loader without it. That's not a regression, it's this function testing
+    something the prefetcher isn't designed to help with. Its actual payoff
+    only shows up in measure_idle(), where there is real compute for the
+    copy to overlap. Don't compare "prefetch" rows from this function
+    against non-prefetch rows and call it a throughput result -- see
+    measure_idle for the number that actually isolates the prefetcher's effect.
+    """
     if prefetch and device.type == "cuda":
         loader = CudaPrefetcher(loader, device)
     it = iter(loader)

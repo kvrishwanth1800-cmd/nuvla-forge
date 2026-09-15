@@ -104,15 +104,29 @@ def section_dataloader(lines):
         return
     lines += [f"Dataset: `{d['dataset']}` · {d['env']['cpu_count']} CPUs · "
               f"DALI {'available' if d['env']['has_dali'] else 'absent'}", "",
-              "| configuration | samples/s | GPU idle |", "|---|---|---|"]
+              "| configuration | loader-only samples/s | GPU idle (in training loop) |",
+              "|---|---|---|"]
     for r in d["configs"]:
         if "error" in r:
             lines.append(f"| {r['config']} | failed | — |")
         else:
             lines.append(f"| {r['config']} | {fmt(r['samples_per_sec'],'.1f')} | "
                          f"{fmt(r.get('gpu_idle_pct'),'.1f')}% |")
-    lines += ["", "> GPU idle above ~10% means the model is waiting on data. "
-              "Kernel work cannot fix that.", ""]
+    lines += [
+        "",
+        "> **GPU idle** (measured with a real forward+backward pass in the loop) "
+        "is the column that matters; above ~10% means the model is waiting on "
+        "data and no kernel work will fix that.",
+        "",
+        "> **Loader-only samples/s** measures the loader alone, no compute in "
+        "between batches. Note this column is *not* meaningful for the CUDA-"
+        "prefetch rows: the prefetcher's entire purpose is overlapping the H2D "
+        "copy with GPU compute, and with no compute here to overlap with, it "
+        "can only add stream-management overhead for zero benefit. Judge the "
+        "prefetcher's effect from the GPU-idle column instead, where it is "
+        "actually exercised doing its job.",
+        "",
+    ]
 
 
 def section_end_to_end(lines):
