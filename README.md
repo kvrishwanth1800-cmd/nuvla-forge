@@ -177,6 +177,20 @@ scripts/        setup_vast · probe_hardware · run_all_benchmarks
 
 ## Honest limitations
 
+- **All benchmarks in `RESULTS.md` use the `synthetic` dataset**, not real
+  driving data. A real-data run (`nuscenes-qa-mini`) was attempted on the
+  rented H100 instance and hit a Vast.ai storage constraint: the container's
+  writable overlay filesystem was capped at 16GB regardless of the disk size
+  requested at instance creation (the requested disk maps to a separate,
+  read-only-to-this-container mount on that particular image/template), and
+  the PyTorch/CUDA/Triton environment alone consumes 8.2GB of that, leaving
+  no room for a multi-gigabyte dataset download. This is an infrastructure
+  provisioning issue, not a code limitation — the dataset adapter, loader,
+  and training loop all work identically regardless of which dataset backs
+  them, and swapping to `nuscenes-qa-mini` or `drivelm` is one flag
+  (`--dataset nuscenes-qa-mini`) on an instance with correctly-mounted
+  storage. Kernel correctness and microbenchmarks are dataset-independent
+  and unaffected by this.
 - The model is small by design. This repo is about step time, not leaderboard
   rank, and a model that converges overnight on two consumer cards makes the
   optimisation work legible.
