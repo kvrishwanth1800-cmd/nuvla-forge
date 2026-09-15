@@ -1,0 +1,47 @@
+{
+  "dataset": "synthetic",
+  "env": {
+    "cpu_count": 40,
+    "has_dali": true,
+    "has_webdataset": true,
+    "torch_threads": 40
+  },
+  "configs": [
+    {
+      "config": "naive (2 workers, no pin)",
+      "samples_per_sec": 1183.5486967876216,
+      "batches": 50,
+      "seconds": 0.337966659999438,
+      "wall_ms": 1101.4350820005347,
+      "gpu_busy_ms": 1017.6369934082031,
+      "gpu_idle_pct": 7.60808239738735
+    },
+    {
+      "config": "tuned (8 workers, pinned)",
+      "samples_per_sec": 2442.7919798122225,
+      "batches": 50,
+      "seconds": 0.16374705799989897,
+      "wall_ms": 1049.7232429997894,
+      "gpu_busy_ms": 1041.2389793395996,
+      "gpu_idle_pct": 0.8082381443650144
+    },
+    {
+      "config": "tuned + cuda prefetch",
+      "samples_per_sec": 1964.8941305984351,
+      "batches": 50,
+      "seconds": 0.20357330899969384,
+      "wall_ms": 1020.682802999545,
+      "gpu_busy_ms": 1011.462718963623,
+      "gpu_idle_pct": 0.9033251083320204
+    },
+    {
+      "config": "tuned + 16 workers",
+      "samples_per_sec": 2509.555666482473,
+      "batches": 50,
+      "seconds": 0.15939076599988766,
+      "wall_ms": 1074.9862290003875,
+      "gpu_busy_ms": 1065.1575965881348,
+      "gpu_idle_pct": 0.9143030996213053
+    }
+  ]
+}
