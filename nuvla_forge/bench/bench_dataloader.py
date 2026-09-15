@@ -44,12 +44,22 @@ def measure_loader(loader, n_batches, device, prefetch=False):
 
 
 def measure_idle(loader, device, n_batches=30, prefetch=False):
-    """GPU idle fraction: total wall time minus time the GPU was busy."""
+    """GPU idle fraction: total wall time minus time the GPU was busy.
+
+    The model's parameters stay fp32 (matching train.py's actual pattern);
+    mixed precision comes from autocast around the forward pass, not from
+    hand-casting the input to bf16 against an fp32 model, which is what the
+    first version of this function did and is exactly why it failed with
+    "Input type (c10::BFloat16) and bias type (float) should be the same" --
+    normalise_images() returned bf16 while every nn.Linear/Conv2d bias here
+    was still fp32, and matmul refuses to mix those.
+    """
     from ..model.nuvla import NuVLA, NuVLAConfig
     model = NuVLA(NuVLAConfig(fused=True)).to(device)
     if prefetch and device.type == "cuda":
         loader = CudaPrefetcher(loader, device)
 
+    autocast_dtype = torch.bfloat16 if device.type == "cuda" else torch.float32
     it = iter(loader)
     busy_ms, wall0 = 0.0, None
     for i in range(n_batches):
@@ -62,10 +72,12 @@ def measure_idle(loader, device, n_batches=30, prefetch=False):
             torch.cuda.synchronize(); wall0 = time.perf_counter(); busy_ms = 0.0
         s, e = (torch.cuda.Event(enable_timing=True) for _ in range(2))
         s.record()
-        out = model(normalise_images(batch["images"]),
-                    trajectory=batch["trajectory"],
-                    text_tokens=batch["text_tokens"],
-                    text_targets=batch["text_targets"])
+        with torch.autocast(device.type, dtype=autocast_dtype, enabled=(device.type == "cuda")):
+            images = normalise_images(batch["images"], dtype=torch.float32)
+            out = model(images,
+                        trajectory=batch["trajectory"].float(),
+                        text_tokens=batch["text_tokens"],
+                        text_targets=batch["text_targets"])
         out["loss"].backward()
         e.record(); torch.cuda.synchronize()
         if wall0 is not None:
